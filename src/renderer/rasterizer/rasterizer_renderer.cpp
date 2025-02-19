@@ -6,6 +6,10 @@
 void cg::renderer::rasterization_renderer::init()
 {
 	// TODO Lab: 1.02 Implement image clearing & saving in `cg::renderer::rasterization_renderer` class
+	rasterizer = std::make_shared<cg::renderer::rasterizer<cg::vertex, cg::unsigned_color>>();
+	rasterizer->set_viewport(settings->width, settings->height);
+	render_target = std::make_shared<cg::resource<cg::unsigned_color>>(settings->width, settings->height);
+	rasterizer->set_render_target(render_target, depth_buffer);
 	// TODO Lab: 1.03 Adjust `cg::renderer::rasterization_renderer` class to consume `cg::world::model`
 	// TODO Lab: 1.04 Setup an instance of camera `cg::world::camera` class in `cg::renderer::rasterization_renderer`
 	// TODO Lab: 1.06 Add depth buffer in `cg::renderer::rasterization_renderer`
