@@ -118,7 +118,6 @@ namespace cg
 		};
 		float3 to_float3() const
 		{
-			// TODO Lab: 1.02 Implement `cg::color` and `cg::unsigned_color` structs
 			return float3{
 				static_cast<float>(r);
 				static_cast<float>(g);
@@ -133,7 +132,12 @@ namespace cg
 
 	struct vertex
 	{
-		// TODO Lab: 1.03 Implement `cg::vertex` struct
+		float3 position;
+		float3 normal;
+		float2 texture;
+		float3 ambient;
+		float3 diffuse;
+		float3 emissive;
 	};
 
 }// namespace cg
