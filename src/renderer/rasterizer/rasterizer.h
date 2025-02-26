@@ -4,8 +4,8 @@
 
 #include <functional>
 #include <iostream>
-#include <linalg.h>
 #include <limits>
+#include <linalg.h>
 #include <memory>
 
 
@@ -19,8 +19,8 @@ namespace cg::renderer
 	class rasterizer
 	{
 	public:
-		rasterizer(){};
-		~rasterizer(){};
+		rasterizer() {};
+		~rasterizer() {};
 		void set_render_target(
 				std::shared_ptr<resource<RT>> in_render_target,
 				std::shared_ptr<resource<float>> in_depth_buffer = nullptr);
@@ -55,10 +55,9 @@ namespace cg::renderer
 			std::shared_ptr<resource<RT>> in_render_target,
 			std::shared_ptr<resource<float>> in_depth_buffer)
 	{
-		 if (in_render_target)
-		 	render_target = in_render_target	 	
+		if (in_render_target)
+			render_target = in_render_target;
 		// TODO Lab: 1.06 Adjust `set_render_target`, and `clear_render_target` methods of `cg::renderer::rasterizer` class to consume a depth buffer
-
 	}
 
 	template<typename VB, typename RT>
@@ -72,7 +71,7 @@ namespace cg::renderer
 	inline void rasterizer<VB, RT>::clear_render_target(
 			const RT& in_clear_value, const float in_depth)
 	{
-		if(render_target){
+		if (render_target) {
 			for (size_t i = 0; i < render_target->count(); i++) {
 				render_target->item(i) = in_clear_value;
 			}
@@ -98,49 +97,54 @@ namespace cg::renderer
 	inline void rasterizer<VB, RT>::draw(size_t num_vertexes, size_t vertex_offset)
 	{
 		size_t vertex_id = vertex_offset;
-		while (vertex_id < vertex_offset + num_vertexes) 
+		while (vertex_id < vertex_offset + num_vertexes)
 		{
 			std::vector<VB> vertices(3);
 			vertices[0] = vertex_buffer->item(index_buffer->item(vertex_id++));
 			vertices[1] = vertex_buffer->item(index_buffer->item(vertex_id++));
 			vertices[2] = vertex_buffer->item(index_buffer->item(vertex_id++));
 
+
 			for (auto& vertex: vertices) {
 				float4 coords{vertex.position.x, vertex.position.y, vertex.position.z, 1.f};
 				auto processed_vertex = vertex_shader(coords, vertex);
 
-				vertex.position = processed_vertex.first.xyz / processed_vertex.first.w;
-				 
+				vertex.position = processed_vertex.first.xyz() / processed_vertex.first.w;
+
 				vertex.position.x = (vertex.position.x + 1.f) * width / 2.f;
 				vertex.position.y = (-vertex.position.y + 1.f) * height / 2.f;
 			}
 
-			float2 vertex_a = float2{vertices[0].x, vertices[0].y};
-			float2 vertex_b = float2{vertices[1].x, vertices[1].y};
-			float2 vertex_c = float2{vertices[2].x, vertices[2].y};
 
-			float2 min_vertex = min(vertex_a, min(vertex_b, vertex_c));
-			float2 bounding_box_begin = round(clamp(min_vertex, float2{0, 0}, float2{static_cast<float>(width - 1), static_cast<float>(height - 1)}));
+			int2 vertex_a = int2(vertices[0].position.xy());
+			int2 vertex_b = int2(vertices[1].position.xy());
+			int2 vertex_c = int2(vertices[2].position.xy());
 
-			float2 max_vertex = max(vertex_a, max(vertex_b, vertex_c));
-			float2 bounding_box_end = round(clamp(max_vertex, float2{0, 0}, float2{static_cast<float>(width - 1), static_cast<float>(height - 1)}));
+			int2 min_vertex = min(vertex_a, min(vertex_b, vertex_c));
+			int2 max_vertex = max(vertex_a, max(vertex_b, vertex_c));
+			int2 min_viewport = int2{0, 0};
+			int2 max_viewport = int2{static_cast<int>(width - 1), static_cast<int>(height - 1)};
 
-			for (float x = bounding_box_begin.x; x <= bounding_box_end.x; x += 1.f) {
-				for (float y = bounding_box_begin.y; y <= bounding_box_end.y; y += 1.f) {
-					float2 point{x, y};
-					float edge0 = edge_function(vertex_a, vertex_b, point);
-					float edge1 = edge_function(vertex_b, vertex_c, point);
-					float edge2 = edge_function(vertex_c, vertex_a, point);
+			int2 begin = clamp(min_vertex, min_viewport, max_viewport);
+			int2 end = clamp(max_vertex, min_viewport, max_viewport);
 
-					if (edge0 >= 0.f && edge1 >= 0.f && edge2 >= 0.f){
-						size_t u_x = static_cast<size_t>(x);
-						size_t u_y = static_cast<size_t>(y);
+			for(int x = begin.x; x <= end.x; x++)
+				{
+				for (int y = begin.y; y <= end.y; y++)
+					{
+					int2 point{x,y};
+					int edge0 = edge_function(vertex_a,vertex_b,point);
+					int edge1 = edge_function(vertex_b,vertex_c,point);
+					int edge2 = edge_function(vertex_c,vertex_a,point);
+					if (edge0 >= 0 && edge1 >= 0 && edge2 >= 0){
 
 						auto pixel_result = pixel_shader(vertices[0], 0.f);
-						render_target->item(u_x, u_y) = RT::from_color(pixel_result);
+						render_target -> item(x,y) = RT:: from_color(pixel_result);
 					}
 				}
 			}
+
+
 		}
 		// TODO Lab: 1.05 Add `Rasterization` and `Pixel shader` stages to `draw` method of `cg::renderer::rasterizer`
 		// TODO Lab: 1.06 Add `Depth test` stage to `draw` method of `cg::renderer::rasterizer`

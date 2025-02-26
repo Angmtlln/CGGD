@@ -20,8 +20,8 @@ Use `git clone --recursive` to clone the repo with submodules or run `git submod
 Go to the project folder and run the next command:
 
 ```sh
-mkdir Build
-cd Build
+mkdir build
+cd build
 cmake ..
 ```
 

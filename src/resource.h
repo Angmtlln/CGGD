@@ -110,18 +110,18 @@ namespace cg
 		{
 			float3 preprocessed = clamp(255.f*color, 0.f, 255.f);
 			return unsigned_color{
-				out.r = static_cast<uint8_t>(preprocessed.x);
-				out.g = static_cast<uint8_t>(preprocessed.y);
-				out.b = static_cast<uint8_t>(preprocessed.z);
-			}
+				static_cast<uint8_t>(preprocessed.x),
+				static_cast<uint8_t>(preprocessed.y),
+				static_cast<uint8_t>(preprocessed.z),
+			};
 
 		};
 		float3 to_float3() const
 		{
 			return float3{
-				static_cast<float>(r);
-				static_cast<float>(g);
-				static_cast<float>(b);
+				static_cast<float>(r),
+				static_cast<float>(g),
+				static_cast<float>(b),
 			}/255.f;
 		};
 		uint8_t r;

@@ -108,7 +108,7 @@ void model::fill_vertex_data(cg::vertex& vertex, const tinyobj::attrib_t& attrib
 			attrib.normals[3 * idx.normal_index],
 			attrib.normals[3 * idx.normal_index + 1],
 			attrib.normals[3 * idx.normal_index + 2],
-		}
+		};
 	}
 	if (idx.texcoord_index < 0){
 		vertex.texture = float2{0,0};
@@ -130,9 +130,9 @@ void model::fill_vertex_data(cg::vertex& vertex, const tinyobj::attrib_t& attrib
 		material.diffuse[2],
 	};
 	vertex.emissive = float3{
-		material.emissive[0],
-		material.emissive[1],
-		material.emissive[2],
+		material.emission[0],
+		material.emission[1],
+		material.emission[2],
 	};
 }
 
@@ -142,34 +142,34 @@ void model::fill_buffers(const std::vector<tinyobj::shape_t>& shapes, const tiny
 		size_t index_offset = 0;
 		unsigned int vertex_buffer_id = 0;
 		unsigned int index_buffer_id = 0;
-
 		auto vertex_buffer = vertex_buffers[s];
 		auto index_buffer = index_buffers[s];
-
 		std::map<std::tuple<int, int, int>, unsigned int> index_map;
 		const auto& mesh = shapes[s].mesh;
-		
-		for (const auto& fv: mesh.num_face_vertices) {
-
+		for (size_t f = 0; f < mesh.num_face_vertices.size(); f++)
+		{
+			int fv = mesh.num_face_vertices[f];
+			float3 normal;
+			if (mesh.indices[index_offset].normal_index < 0) {
+				normal = compute_normal(attrib, mesh, index_offset);
+			}
 			for (size_t v = 0; v < fv; v++) {
-
 				tinyobj::index_t idx = mesh.indices[index_offset + v];
-				auto idx_tuple = std::make_tuple(idx.vertex_index, idx.normal_index,idx.texcoord_index);
-				if (index_map.count(idx_tuple) == 0) 
+				auto idx_tuple = std::make_tuple(idx.vertex_index, idx.normal_index, idx.texcoord_index);
+				if (index_map.count(idx_tuple) == 0)
 				{
-					cg:vertex& vertex = vertex_buffer->item(vertex_buffer_id);
+					cg::vertex& vertex = vertex_buffer->item(vertex_buffer_id);
 					const auto& material = materials[mesh.material_ids[f]];
-					
-					fill_vertex_data(vertex, attrib, idx, normal, material);
+					fill_vertex_data(vertex,attrib,idx,normal,material);
 					index_map[idx_tuple] = vertex_buffer_id;
 					vertex_buffer_id++;
 				}
-				index_buffer->item(index_buffer_id) = index_map[idx_tupple];
+				index_buffer->item(index_buffer_id) = index_map[idx_tuple];
 				index_buffer_id++;
 			}
 			index_offset += fv;
 		}
-		if (!materials[mesh.material_ids[0]].diffuse_texname.empty()){
+		if (!materials[mesh.material_ids[0]].diffuse_texname.empty()) {
 			textures[s] = base_folder / materials[mesh.material_ids[0]].diffuse_texname;
 		}
 	}
