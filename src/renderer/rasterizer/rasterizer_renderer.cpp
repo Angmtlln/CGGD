@@ -8,6 +8,7 @@ void cg::renderer::rasterization_renderer::init()
 	rasterizer = std::make_shared<cg::renderer::rasterizer<cg::vertex, cg::unsigned_color>>();
 	rasterizer->set_viewport(settings->width, settings->height);
 	render_target = std::make_shared<cg::resource<cg::unsigned_color>>(settings->width, settings->height);
+	depth_buffer = std::make_shared<cg::resource<float>>(settings->width, settings->height);
 	rasterizer->set_render_target(render_target, depth_buffer);
 
 	model = std::make_shared<cg::world::model>();
@@ -16,13 +17,12 @@ void cg::renderer::rasterization_renderer::init()
 		auto vertex_buffer_size = model->get_vertex_buffers()[i]->size_bytes();
 		auto index_buffer_size = model->get_index_buffers()[i]->size_bytes();
 		auto pure_vertex_buffer_size = model->get_index_buffers()[i]->count()*sizeof(cg::vertex);
-		
+
 		std::cout<< "Vertex buffer size: " << vertex_buffer_size << "\n";
 		std::cout<< "Index buffer size: " << index_buffer_size << "\n";
 		std::cout<< "Pure vertex buffer size: " << pure_vertex_buffer_size << "\n";
 		std::cout<< "Saving: " << pure_vertex_buffer_size - vertex_buffer_size - index_buffer_size << "\n";
 	}
-
 	camera = std::make_shared<cg::world::camera>();
 	camera->set_height(static_cast<float>(settings->height));
 	camera->set_width(static_cast<float>(settings->width));
@@ -36,10 +36,16 @@ void cg::renderer::rasterization_renderer::init()
 	camera->set_angle_of_view(settings->camera_angle_of_view);
 	camera->set_z_near(settings->camera_z_near);
 	camera->set_z_far(settings->camera_z_far);
-	// TODO Lab: 1.06 Add depth buffer in `cg::renderer::rasterization_renderer`
+
 }
 void cg::renderer::rasterization_renderer::render()
 {
+	auto start = std::chrono::high_resolution_clock::now();
+	rasterizer->clear_render_target({121,201,52});
+
+	auto stop = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<float, std::milli> duration = stop - start;
+	std::cout << "Rasterization took: " << duration.count() << " ms\n";
 	float4x4 matrix = mul(
 		camera->get_projection_matrix(),
 		camera->get_view_matrix(),
@@ -48,14 +54,10 @@ void cg::renderer::rasterization_renderer::render()
 		float4 processed = mul(matrix, vertex);
 		return std::make_pair(processed, vertex_data);
 	};
-
-	auto start = std::chrono::high_resolution_clock::now();
-	rasterizer->clear_render_target({121,201,52});
+	rasterizer->pixel_shader = [](cg::vertex vertex_data, float z) {
+		return cg::color::from_float3(vertex_data.ambient);
+	};
 	
-	auto stop = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<float, std::milli> duration = stop - start;
-	std::cout << "Rasterization took: " << duration.count() << " ms\n";
-	// TODO Lab: 1.05 Implement `pixel_shader` lambda for the instance of `cg::renderer::rasterizer`
 	for (size_t shape_id = 0; shape_id < model->get_index_buffers().size(); shape_id++) {
 		rasterizer->set_vertex_buffer(model->get_vertex_buffers()[shape_id]);
 		rasterizer->set_index_buffer(model->get_index_buffers()[shape_id]);
