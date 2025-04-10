@@ -64,6 +64,7 @@ void cg::renderer::dx12_renderer::render()
 
 	THROW_IF_FAILED(swap_chain->Present(0, 0));
 
+
 	move_to_next_frame();
 }
 
@@ -74,8 +75,10 @@ ComPtr<IDXGIFactory4> cg::renderer::dx12_renderer::get_dxgi_factory()
 	ComPtr<ID3D12Debug> debug_controller;
 	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug_controller))))
 	{
+	
 		debug_controller->EnableDebugLayer();
 		dxgi_factory_flags |= DXGI_CREATE_FACTORY_DEBUG;
+	
 	};
 #endif
 	ComPtr<IDXGIFactory4> dxgi_factory;
@@ -88,11 +91,13 @@ void cg::renderer::dx12_renderer::initialize_device(ComPtr<IDXGIFactory4>& dxgi_
 	ComPtr<IDXGIAdapter1> hardware_adapter;
 	dxgi_factory->EnumAdapters1(0, &hardware_adapter);
 #ifdef _DEBUG
+	
 	DXGI_ADAPTER_DESC adapter_desc{};
 	hardware_adapter->GetDesc(&adapter_desc);
 	OutputDebugString(adapter_desc.Description);
 	OutputDebugString(L"\n");
 #endif
+	
 	THROW_IF_FAILED(D3D12CreateDevice(hardware_adapter.Get(),
 									  D3D_FEATURE_LEVEL_11_0,
 									  IID_PPV_ARGS(&device)));
@@ -101,8 +106,11 @@ void cg::renderer::dx12_renderer::initialize_device(ComPtr<IDXGIFactory4>& dxgi_
 void cg::renderer::dx12_renderer::create_direct_command_queue()
 {
 	D3D12_COMMAND_QUEUE_DESC queue_desc{};
+	
 	queue_desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+	
 	queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+	
 	THROW_IF_FAILED(device->CreateCommandQueue(&queue_desc,
 											   IID_PPV_ARGS(&command_queue)));
 }
