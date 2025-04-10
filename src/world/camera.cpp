@@ -40,7 +40,7 @@ void cg::world::camera::set_angle_of_view(float in_aov)
 void cg::world::camera::set_height(float in_height)
 {
 	height = in_height;
-	aspect_ratio = width/height;
+	aspect_ratio = width / height;
 }
 
 void cg::world::camera::set_width(float in_width)
@@ -88,7 +88,12 @@ const DirectX::XMMATRIX cg::world::camera::get_dxm_view_matrix() const
 
 const DirectX::XMMATRIX cg::world::camera::get_dxm_projection_matrix() const
 {
-	return DirectX::XMMatrixPerspectiveFovRH(angle_of_view,aspect_ratio,z_near,z_far);
+	return DirectX::XMMatrixPerspectiveFovRH(
+		angle_of_view,
+		aspect_ratio,
+		z_near,
+		z_far
+		);
 }
 
 const DirectX::XMMATRIX camera::get_dxm_mvp_matrix() const
@@ -104,7 +109,9 @@ const float4x4 cg::world::camera::get_projection_matrix() const
 			{f / aspect_ratio, 0, 0, 0},
 			{0, f, 0, 0},
 			{0, 0, z_far / (z_near - z_far), -1},
-			{0, 0, z_far * z_near / (z_near - z_far), 0}};
+			{0, 0, (z_far * z_near) / (z_near - z_far), 0},
+
+	};
 }
 
 const float3 cg::world::camera::get_position() const
@@ -115,9 +122,9 @@ const float3 cg::world::camera::get_position() const
 const float3 cg::world::camera::get_direction() const
 {
 	return float3{
-		sin(theta) * cos(phi),
-		sin(phi),
-		-cos(theta) * cos(phi)};
+			sin(theta) * cos(phi),
+			sin(phi),
+			-cos(theta) * cos(phi)};
 }
 
 const float3 cg::world::camera::get_right() const
