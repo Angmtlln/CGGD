@@ -581,3 +581,4 @@ ID3D12DescriptorHeap* cg::renderer::descriptor_heap::get() const
 {
 	return heap.Get();
 }
+
